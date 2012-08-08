@@ -14,9 +14,9 @@ public interface QzEach<T> {
 	 * 
 	 * @param array
 	 *            被填充的数组
-	 * @param i
+	 * @param index
 	 *            当前匹配的下标
 	 */
-	void invoke(T[] array, int i) throws Exception;
+	void invoke(T[] array, int index) throws Exception;
 
 }
