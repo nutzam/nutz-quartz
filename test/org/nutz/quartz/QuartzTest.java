@@ -174,6 +174,11 @@ public class QuartzTest {
 	public void test_fill_by_sec() {
 		Fss("2012-02-08", "0,1 0 0,1 * * ?", "0:E", "1:E", "3600:E", "3601:E");
 	}
+	
+	@Test
+	public void test_strato() {
+		Quartz.NEW("0 0 0 7-13 JUL ?");
+	}
 
 	/*----------------------------------------------------------帮助函数们-------*/
 

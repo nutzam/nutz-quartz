@@ -1,5 +1,6 @@
 package org.nutz.quartz;
 
+
 /**
  * 表达式的每个项目
  * 
@@ -170,13 +171,14 @@ class QzItem {
 	 */
 	protected int eval(String str, String[] dict, int dictOffset) {
 		int off = 1;
-		if (str.endsWith("L")) {
-			off = -1;
-			str = str.substring(0, str.length() - 1);
-		}
 		int re;
 		try {
-			re = Integer.parseInt(str);
+			if (str.endsWith("L")) {
+				off = -1;
+				re = Integer.parseInt(str.substring(0, str.length() - 1));
+			} else {
+				re = Integer.parseInt(str);
+			}
 		}
 		catch (NumberFormatException e) {
 			if (null != dict) {
