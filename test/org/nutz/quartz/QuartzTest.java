@@ -34,6 +34,17 @@ public class QuartzTest {
     }
 
     @Test
+    public void test_month_7_1_5() throws Exception {
+        Quartz qz;
+        // ............................................
+        qz = Quartz.NEW("0 0 0 1-5 7 ?");
+        assertTrue(qz.matchDate("2015-07-01"));
+        assertTrue(qz.matchDate("2015-07-05"));
+        assertFalse(qz.matchDate("2015-07-06"));
+        assertFalse(qz.matchDate("2015-06-30"));
+    }
+
+    @Test
     public void test_multi_date_scope() {
         Quartz qz;
 
