@@ -1,6 +1,8 @@
 package org.nutz.quartz;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -8,6 +10,28 @@ import org.junit.Test;
 import org.nutz.lang.Lang;
 
 public class QuartzTest {
+
+    @Test
+    public void test_month_XXX_1_5() throws Exception {
+        Quartz qz;
+        // ............................................
+        qz = Quartz.NEW("0 0 0 1-5 * ?");
+        assertTrue(qz.matchDate("2015-07-01"));
+        assertTrue(qz.matchDate("2015-07-05"));
+        assertFalse(qz.matchDate("2015-07-06"));
+        assertFalse(qz.matchDate("2015-06-30"));
+    }
+
+    @Test
+    public void test_month_jul_1_5() throws Exception {
+        Quartz qz;
+        // ............................................
+        qz = Quartz.NEW("0 0 0 1-5 JUL ?");
+        assertTrue(qz.matchDate("2015-07-01"));
+        assertTrue(qz.matchDate("2015-07-05"));
+        assertFalse(qz.matchDate("2015-07-06"));
+        assertFalse(qz.matchDate("2015-06-30"));
+    }
 
     @Test
     public void test_multi_date_scope() {
@@ -170,13 +194,7 @@ public class QuartzTest {
     @Test
     public void test_fill_by_hour() {
         Fhh("2012-02-08", "0 0 5-8 * * ?", "5:E", "6:E", "7:E", "8:E");
-        Fhh("2012-02-08",
-            "0,3,4,5 0/1 4-8 * * ?",
-            "4:E",
-            "5:E",
-            "6:E",
-            "7:E",
-            "8:E");
+        Fhh("2012-02-08", "0,3,4,5 0/1 4-8 * * ?", "4:E", "5:E", "6:E", "7:E", "8:E");
 
         Fhh("2012-02-08", "0 0 5,8 * * ?", "5:E", "8:E");
         Fhh("2012-02-08", "0,3,4,5 0/1 5,8 * * ?", "5:E", "8:E");
@@ -211,10 +229,7 @@ public class QuartzTest {
         FILL(ss(), ds, qzs, expect);
     }
 
-    private static void FILL(String[] array,
-                             String ds,
-                             String qzs,
-                             String... expect) {
+    private static void FILL(String[] array, String ds, String qzs, String... expect) {
         // 创建
         Quartz qz = Quartz.NEW();
 
@@ -236,9 +251,7 @@ public class QuartzTest {
 
         // 验证
         if (ss.length != expect.length) {
-            fail(FMT("expect length %d, but is was %s !",
-                     expect.length,
-                     ss.length));
+            fail(FMT("expect length %d, but is was %s !", expect.length, ss.length));
         }
         for (int i1 = 0; i1 < ss.length; i1++) {
             if (!ss[i1].equals(expect[i1])) {
@@ -247,10 +260,7 @@ public class QuartzTest {
         }
     }
 
-    private static void OVERL(int scale,
-                              String ds,
-                              String[] qzss,
-                              String[] expect) {
+    private static void OVERL(int scale, String ds, String[] qzss, String[] expect) {
         QzOverlapor[] qos = new QzOverlapor[scale];
         int i = 0;
         for (String qzs : qzss) {
@@ -272,9 +282,7 @@ public class QuartzTest {
 
         // 验证
         if (ss.length != expect.length) {
-            fail(FMT("expect length %d, but is was %s !",
-                     expect.length,
-                     ss.length));
+            fail(FMT("expect length %d, but is was %s !", expect.length, ss.length));
         }
         for (int i1 = 0; i1 < ss.length; i1++) {
             if (!ss[i1].equals(expect[i1])) {
