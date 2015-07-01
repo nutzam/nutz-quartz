@@ -89,9 +89,7 @@ class QzItem {
         // 看看是不是范围
         ss = str.split("-");
         if (ss.length > 1) {
-            values = new int[]{RANGE,
-                               eval4override(ss[0]),
-                               eval4override(ss[1])};
+            values = new int[]{RANGE, eval4override(ss[0]), eval4override(ss[1])};
             return;
         }
         // 那么一定是固定值了
@@ -210,6 +208,7 @@ class QzItem {
         }
         catch (NumberFormatException e) {
             if (null != dict) {
+                off = 1;
                 String s = str.toUpperCase();
                 for (int i = dictOffset; i < dict.length; i++)
                     if (s.equals(dict[i]))
