@@ -143,16 +143,23 @@ function Fss() {
 }
 // array, ds, String qzs, String... expect
 function FILL() {
-    var array = arguments[0];
-    var ds    = arguments[1];
-    var qzs   = arguments[2];
-    var expect = Array.from(arguments).slice(3);
+    var array  = arguments[0];
+    var ds     = arguments[1];
+    var qzs    = arguments[2];
+    var expect = arguments[3];
+    var off    = arguments.length>4 ? arguments[4] : 0;
+    var len    = arguments.length>5 ? arguments[5] : array.length;
+    var unit   = arguments.length>6 ? arguments[6] : parseInt(86400 / array.length);
     // 创建 & 解析
     var qz = new Quartz(qzs);
 
+    if("0 0 8-10 * * ?" == qzs){
+        console.log("haha")
+    }
+
     // 执行
     var ms0 = Date.now();
-    qz.fill(array, "E", new Date(ds));
+    qz.fill(array, "E", new Date(ds), off, len, unit);
     var ms1 = Date.now();
     var qzos = Quartz.compactAll(array);
     var ms2 = Date.now();
@@ -265,6 +272,7 @@ explain("0 0 0 * * 1,2-4,7");
 explain("0 0 0 * * FRI#2");
 explain("0 0 0 * * 2#4");
 explain("0 0/5 8,10-14,23 * * ?");
+explain("0 0 0,1 * * ?");
 //.......................................................
 log("\n========================= Test of matchDate");
 Qz("0 0 0 1-5 * ?");
@@ -403,17 +411,20 @@ assert_match_time(false, "12:11:23");
 assert_match_time(false, "23:59:59");
 //.......................................................
 log("\n========================= Test of fill_by_hour\n");
-Fhh("2012-02-08", "0 0 5-8 * * ?", "5:E", "6:E", "7:E", "8:E");
-Fhh("2012-02-08", "0,3,4,5 0/1 4-8 * * ?", "4:E", "5:E", "6:E", "7:E", "8:E");
+Fhh("2012-02-08", "0 0 5-8 * * ?", ["5:E", "6:E", "7:E", "8:E"]);
+Fhh("2012-02-08", "0,3,4,5 0/1 4-8 * * ?", ["4:E", "5:E", "6:E", "7:E", "8:E"]);
 
-Fhh("2012-02-08", "0 0 5,8 * * ?", "5:E", "8:E");
-Fhh("2012-02-08", "0,3,4,5 0/1 5,8 * * ?", "5:E", "8:E");
+Fhh("2012-02-08", "0 0 5,8 * * ?", ["5:E", "8:E"]);
+Fhh("2012-02-08", "0,3,4,5 0/1 5,8 * * ?", ["5:E", "8:E"]);
 //.......................................................
 log("\n========================= Test of test_fill_by_min\n");
-Fmm("2012-02-08", "0 1,2 0,1 * * ?", "1:E", "2:E", "61:E", "62:E");
+Fmm("2012-02-08", "0 1,2 0,1 * * ?", ["1:E", "2:E", "61:E", "62:E"]);
 //.......................................................
 log("\n========================= Test of test_fill_by_sec\n");
-Fss("2012-02-08", "0,1 0 0,1 * * ?", "0:E", "1:E", "3600:E", "3601:E");
+Fss("2012-02-08", "0,1 0 0,1 * * ?", ["0:E", "1:E", "3600:E", "3601:E"]);
+//.......................................................
+log("\n========================= Test of test_fill_partly\n");
+Fhh("2012-02-08", "0 0 8-10 * * ?", ["9:E", "10:E"], 9, 3);
 //.......................................................
 log("\n========================= Test of test_overlap_by_hour\n");
 OVERL(24,

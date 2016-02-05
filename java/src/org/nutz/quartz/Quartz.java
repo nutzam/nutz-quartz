@@ -260,6 +260,14 @@ public class Quartz {
     }
 
     /**
+     * @see #each(Object[], int, int, int, Calendar, QzEach)
+     */
+    public <T> void each(T[] array, Calendar c, QzEach<T> callback) {
+        if (null != array && array.length > 0)
+            each(array, c, callback, 0, array.length, 86400 / array.length);
+    }
+
+    /**
      * 本函数用来迭代一个目标数组
      * <p>
      * 你的数组最多可以是 86400 的元素，对应一天中的每一秒，<br>
@@ -285,13 +293,17 @@ public class Quartz {
      * 
      * @param <T>
      * @param array
-     *            要被填充的数组
+     *            要被访问数组
      * @param c
      *            日期对象。空的话，一定会执行迭代
      * @param callback
-     *            如果数组下标被匹配，则要执行的回调
+     *            如果数组下标被匹配，则要执行的回调 * @param off 从数组的哪个下标开始访问
+     * @param len
+     *            访问多少个元素
+     * @param unit
+     *            一个数组元素表示多少秒
      */
-    public <T> void each(T[] array, Calendar c, QzEach<T> callback) {
+    public <T> void each(T[] array, Calendar c, QzEach<T> callback, int off, int len, int unit) {
         // 填充数组为空，每必要填充
         if (null == array || array.length == 0)
             return;
@@ -300,12 +312,10 @@ public class Quartz {
         if (null != c && !matchDate(c))
             return;
 
-        // 根据数组，获得一个数组元素表示多少秒
-        int unit = 86400 / array.length;
-
         // 循环数组
         try {
-            for (int i = 0; i < array.length; i++) {
+            int maxIndex = Math.min(array.length, off + len);
+            for (int i = off; i < maxIndex; i++) {
                 int sec = i * unit;
                 int max = sec + unit;
                 // 循环每个数组元素
@@ -337,11 +347,23 @@ public class Quartz {
      *            叠加对象
      * @param c
      *            日期对象
+     * @param off
+     *            从数组的哪个下标开始访问
+     * @param len
+     *            访问多少个元素
+     * @param unit
+     *            一个数组元素表示多少秒
+     * 
      * @return 数组本身以便链式赋值
      * @see #each(Object[], Calendar, QzEach)
      */
     @SuppressWarnings("unchecked")
-    public <T extends QzOverlapor> T[] overlap(T[] array, final Object obj, Calendar c) {
+    public <T extends QzOverlapor> T[] overlap(T[] array,
+                                               final Object obj,
+                                               Calendar c,
+                                               int off,
+                                               int len,
+                                               int unit) {
         if (null != array && array.length > 0) {
             Mirror<?> mi = Mirror.me(array.getClass().getComponentType());
             final Borning<T> borning = (Borning<T>) mi.getBorning();
@@ -354,9 +376,18 @@ public class Quartz {
                     // 加入叠加对象
                     array[i].add(obj);
                 }
-            });
+            }, off, len, unit);
         }
         return array;
+    }
+
+    /**
+     * @see #overlap(QzOverlapor[], Object, Calendar, int, int, int)
+     */
+    public <T extends QzOverlapor> T[] overlap(T[] array, final Object obj, Calendar c) {
+        if (null == array || array.length == 0)
+            return array;
+        return this.overlap(array, obj, c, 0, array.length, 86400 / array.length);
     }
 
     /**
@@ -448,6 +479,15 @@ public class Quartz {
     }
 
     /**
+     * @see #fill(Object[], Object, Calendar, int, int, int)
+     */
+    public <T> T[] fill(T[] array, final T obj, Calendar c) {
+        if (null == array || array.length == 0)
+            return array;
+        return fill(array, obj, c, 0, array.length, 86400 / array.length);
+    }
+
+    /**
      * 本函数用来填充数组
      * <p>
      * 它将调用 each 函数，填充数组中的匹配项。
@@ -462,15 +502,22 @@ public class Quartz {
      *            填充的对象
      * @param c
      *            日期对象
+     * @param off
+     *            从数组的哪个下标开始访问
+     * @param len
+     *            访问多少个元素
+     * @param unit
+     *            一个数组元素表示多少秒
+     * 
      * @return 数组本身以便链式赋值
      * @see #each(Object[], Calendar, QzEach)
      */
-    public <T> T[] fill(T[] array, final T obj, Calendar c) {
+    public <T> T[] fill(T[] array, final T obj, Calendar c, int off, int len, int unit) {
         this.each(array, c, new QzEach<T>() {
             public void invoke(T[] array, int i) {
                 array[i] = obj;
             }
-        });
+        }, off, len, unit);
         return array;
     }
 

@@ -449,7 +449,7 @@ Quartz.prototype = {
         return true;
     },
     // callback : F(array, index)
-    each : function(array, c, callback) {
+    each : function(array, c, callback, off, len, unit) {
         // 填充数组为空，每必要填充
         if (!array || array.length == 0)
             return;
@@ -459,10 +459,13 @@ Quartz.prototype = {
             return;
 
         // 根据数组，获得一个数组元素表示多少秒
-        var unit = parseInt(86400 / array.length);
+        off  = off  || 0;
+        len  = len  || array.length;
+        unit = unit || parseInt(86400 / array.length);
 
         // 循环数组
-        for (var i = 0; i < array.length; i++) {
+        var maxIndex = Math.min(array.length, off + len);
+        for (var i = off; i < maxIndex; i++) {
             var sec = i * unit;
             var max = sec + unit;
             // 循环每个数组元素
@@ -474,13 +477,13 @@ Quartz.prototype = {
             }
         }
     },
-    fill : function(array, obj, c) {
+    fill : function(array, obj, c, off, len, unit) {
         this.each(array, c, function(array, index) {
             array[index] = obj;
-        });
+        }, off, len, unit);
         return array;
     },
-    overlap : function(array, obj, c) {
+    overlap : function(array, obj, c, off, len, unit) {
         this.each(array, c, function(array, index) {
             var ov = array[index];
             // 增加一个叠加器
@@ -491,7 +494,7 @@ Quartz.prototype = {
             else{
                 ov.push(obj);
             }
-        });
+        }, off, len, unit);
         return array;
     },
     //............................................................

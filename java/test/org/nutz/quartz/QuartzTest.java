@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.nutz.lang.Lang;
+import org.nutz.lang.Times;
 
 public class QuartzTest {
 
@@ -222,6 +223,11 @@ public class QuartzTest {
     }
 
     @Test
+    public void test_fill_partly() {
+        FILL(hh(), "2012-02-08", "0 0 8-10 * * ?", 9, 3, "9:E", "10:E");
+    }
+
+    @Test
     public void test_simple_parse() {
         Quartz.NEW("0 0 0 7-13 JUL ?");
     }
@@ -240,7 +246,26 @@ public class QuartzTest {
         FILL(ss(), ds, qzs, expect);
     }
 
+    private static void FILL(String[] array,
+                             String ds,
+                             String qzs,
+                             int off,
+                             int len,
+                             String... expect) {
+        FILL(array, ds, qzs, off, len, 86400 / array.length, expect);
+    }
+
     private static void FILL(String[] array, String ds, String qzs, String... expect) {
+        FILL(array, ds, qzs, 0, array.length, 86400 / array.length, expect);
+    }
+
+    private static void FILL(String[] array,
+                             String ds,
+                             String qzs,
+                             int off,
+                             int len,
+                             int unit,
+                             String... expect) {
         // 创建
         Quartz qz = Quartz.NEW();
 
@@ -248,7 +273,7 @@ public class QuartzTest {
         qz.valueOf(qzs);
 
         // 执行
-        qz.fillBy(array, "E", ds);
+        qz.fill(array, "E", Times.C(ds), off, len, unit);
 
         // 压缩结果
         List<QzObj<String>> qzos = Quartz.compactAll(array);
