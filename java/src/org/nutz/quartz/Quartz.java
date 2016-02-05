@@ -10,6 +10,7 @@ import org.nutz.lang.Mirror;
 import org.nutz.lang.Strings;
 import org.nutz.lang.Times;
 import org.nutz.lang.born.Borning;
+import org.nutz.lang.util.NutMap;
 
 /**
  * 封装 Quartz 表达式的解析，和解释
@@ -223,15 +224,39 @@ public class Quartz {
      * 根据给定的时间字符串，判断是否匹配本表达式
      * 
      * @param ts
-     *            时间字符串，格式为 HH:mm:ss
+     *            时间字符串，格式为 HH:mm:ss 或者 HH:MM
      * @return 是否匹配
      */
     public boolean matchTime(String ts) {
-        String[] ss = ts.split(":");
-        int sec = Integer.parseInt(ss[2]);
-        sec += Integer.parseInt(ss[1]) * 60;
-        sec += Integer.parseInt(ss[0]) * 3600;
-        return matchTime(sec);
+        String[] ary = ts.split(":");
+
+        int HH = Integer.parseInt(ary[0]);
+        if (!iHH.match(HH, 0, 24))
+            return false;
+
+        int mm = Integer.parseInt(ary[1]);
+        if (!imm.match(mm, 0, 60))
+            return false;
+
+        int ss = Integer.parseInt(ary[2]);
+        if (!iss.match(ss, 0, 60))
+            return false;
+
+        return true;
+    }
+
+    /**
+     * @see #each(Object[], Calendar, QzEach)
+     */
+    public <T> void each(T[] array, String ds, QzEach<T> callback) {
+        this.each(array, Times.C(ds), callback);
+    }
+
+    /**
+     * @see #each(Object[], Calendar, QzEach)
+     */
+    public <T> void each(T[] array, Date d, QzEach<T> callback) {
+        this.each(array, Times.C(d), callback);
     }
 
     /**
@@ -239,7 +264,7 @@ public class Quartz {
      * <p>
      * 你的数组最多可以是 86400 的元素，对应一天中的每一秒，<br>
      * 根据你给定的日期，本函数来决定具体哪个一数组项目要被执行回调<br>
-     * 当然，如果你给定日期不能匹配表达式，本函数会直接跳过执行
+     * 当然，如果你给定日期不能匹配表达式，本函数会直接跳过执行，如果你不给定日期，则本函数一定会执行
      * <p>
      * 关于数组的长度涉及到一个时间的缩放问题，Quartz 实际上是声明了一天中的一系列启动点<br>
      * 这些点，我们可以用秒来表示，从 0－86399 分别表示一天中的任何一秒。 <br>
@@ -261,18 +286,18 @@ public class Quartz {
      * @param <T>
      * @param array
      *            要被填充的数组
-     * @param ds
-     *            日期字符串，格式为 "yyyy-MM-dd"
+     * @param c
+     *            日期对象。空的话，一定会执行迭代
      * @param callback
      *            如果数组下标被匹配，则要执行的回调
      */
-    public <T> void each(T[] array, String ds, QzEach<T> callback) {
+    public <T> void each(T[] array, Calendar c, QzEach<T> callback) {
         // 填充数组为空，每必要填充
         if (null == array || array.length == 0)
             return;
 
         // 如果日期不匹配，无视
-        if (!matchDate(ds))
+        if (null != c && !matchDate(c))
             return;
 
         // 根据数组，获得一个数组元素表示多少秒
@@ -311,17 +336,17 @@ public class Quartz {
      * @param obj
      *            叠加对象
      * @param c
-     *            日期对象，时间部分无视
+     *            日期对象
      * @return 数组本身以便链式赋值
      * @see #each(Object[], Calendar, QzEach)
      */
     @SuppressWarnings("unchecked")
     public <T extends QzOverlapor> T[] overlap(T[] array, final Object obj, Calendar c) {
         if (null != array && array.length > 0) {
-            final Borning<T> borning = (Borning<T>) Mirror.me(array.getClass().getComponentType())
-                                                          .getBorning();
+            Mirror<?> mi = Mirror.me(array.getClass().getComponentType());
+            final Borning<T> borning = (Borning<T>) mi.getBorning();
             final Object[] args = new Object[0];
-            each(array, Times.sD(c.getTime()), new QzEach<T>() {
+            this.each(array, c, new QzEach<T>() {
                 public void invoke(T[] array, int i) {
                     // 增加一个叠加器
                     if (null == array[i])
@@ -395,6 +420,34 @@ public class Quartz {
     }
 
     /**
+     * @see #fill(Object[], Object, Calendar)
+     */
+    public <T> T[] fillByToday(T[] array, T obj) {
+        return this.fill(array, obj, Calendar.getInstance());
+    }
+
+    /**
+     * @see #fill(Object[], Object, Calendar)
+     */
+    public <T> T[] fillBy(T[] array, T obj, long ms) {
+        return this.fill(array, obj, Times.C(ms));
+    }
+
+    /**
+     * @see #fill(Object[], Object, Calendar)
+     */
+    public <T> T[] fillBy(T[] array, final T obj, String ds) {
+        return this.fill(array, obj, Times.C(ds));
+    }
+
+    /**
+     * @see #fill(Object[], Object, Calendar)
+     */
+    public <T> T[] fillBy(T[] array, T obj, Date d) {
+        return this.fill(array, obj, Times.C(d));
+    }
+
+    /**
      * 本函数用来填充数组
      * <p>
      * 它将调用 each 函数，填充数组中的匹配项。
@@ -408,55 +461,12 @@ public class Quartz {
      * @param obj
      *            填充的对象
      * @param c
-     *            日期对象，时间部分无视
+     *            日期对象
      * @return 数组本身以便链式赋值
      * @see #each(Object[], Calendar, QzEach)
      */
     public <T> T[] fill(T[] array, final T obj, Calendar c) {
-        return fillBy(array, obj, Times.sD(c.getTime()));
-    }
-
-    /**
-     * 根据当前时间的毫秒数填充数组
-     * 
-     * @see #fill(Object[], Object, Calendar)
-     */
-    public <T> T[] fillByToday(T[] array, T obj) {
-        return fillBy(array, obj, Times.sD(Times.now()));
-    }
-
-    /**
-     * 根据时间的毫秒数填充数组
-     * 
-     * @param <T>
-     * @param array
-     *            要被填充的数组
-     * @param obj
-     *            填充的对象
-     * @param ms
-     *            毫秒数，但是仅仅其中的天这部分有意义
-     * @return 数组本身以便链式赋值
-     * @see #fill(Object[], Object, Calendar)
-     */
-    public <T> T[] fillBy(T[] array, T obj, long ms) {
-        return fillBy(array, obj, Times.D(ms));
-    }
-
-    /**
-     * 根据时间的毫秒数填充数组
-     * 
-     * @param <T>
-     * @param array
-     *            要被填充的数组
-     * @param obj
-     *            填充的对象
-     * @param ds
-     *            日期字符串，格式为 yyyy-MM-dd 的字符串
-     * @return 数组本身以便链式赋值
-     * @see #fill(Object[], Object, Calendar)
-     */
-    public <T> T[] fillBy(T[] array, final T obj, String ds) {
-        each(array, ds, new QzEach<T>() {
+        this.each(array, c, new QzEach<T>() {
             public void invoke(T[] array, int i) {
                 array[i] = obj;
             }
@@ -464,25 +474,71 @@ public class Quartz {
         return array;
     }
 
-    /**
-     * 根据时间的毫秒数填充数组
-     * 
-     * @param <T>
-     * @param array
-     *            要被填充的数组
-     * @param obj
-     *            填充的对象
-     * @param d
-     *            时间，但是仅仅其中的天这部分有意义
-     * @return 数组本身以便链式赋值
-     * @see org.nutz.quartz.Quartz#fillBy(Object[], Object, long)
-     */
-    public <T> T[] fillBy(T[] array, T obj, Date d) {
-        return fillBy(array, obj, Times.sD(d));
-    }
-
     public String toString() {
         return str;
+    }
+
+    /**
+     * 将表达式转换成人类可以读懂的文字
+     *
+     * @param i18n
+     *            为多国语言参数，结构如下:
+     * 
+     *            <pre>
+        {
+            start : "从?开始",
+            to    : "至",
+            L1    : "最后一",
+            Ln    : "倒数第?",
+            N     : "第?个",
+            month : {
+                span : "每?个月",
+                ANY  : "每月的",
+                dict : ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"],
+                suffix : "之中的"
+            },
+            day : {
+                unit   : "日",
+                span   : "每?天",
+                ANY    : "每天",
+                tmpl   : "?号",
+                suffix : "的",
+                W      : "最近的工作日",
+                Wonly  : "所有工作日"
+            },
+            week : {
+                unit : "周",
+                span : "每隔?周", 
+                ANY  : "每周",
+                dict : ["周日","周一","周二","周三","周四","周五","周六"],
+                suffix : "的每天"
+            },
+            hour : {
+                span  : "每?小时",
+                ANY   : "",
+                tmpl  : "?点",
+                suffix : "的"
+            },
+            minute : {
+                scope : ", 的",
+                span  : "每?分钟",
+                ANY   : "",
+                tmpl  : "?分",
+                suffix : "的"
+            },
+            second : {
+                scope : ", 其中每分钟的",
+                span  : "每?秒钟",
+                ANY   : "",
+                tmpl  : "?秒"
+            }
+        }
+     *            </pre>
+     * 
+     * @return 人类可以读懂的字符串
+     */
+    public String toText(NutMap i18n) {
+        throw Lang.noImplement();
     }
 
     public static void main(String[] args) {

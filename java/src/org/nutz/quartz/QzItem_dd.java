@@ -8,6 +8,14 @@ import org.nutz.lang.Strings;
  * 判断日（按月）
  * <p>
  * 支持 "W" 工作日的方法:
+ * 
+ * <pre>
+ * "W" : 仅被用于天（月）子表达式，表示工作日
+ *     > "W" 为所有工作日
+ *     > "4W" 为距离本月第5日最近的工作日
+ *     > "4LW" 为距离当月倒数第4日最近的工作日
+ * </pre>
+ * 
  * <p>
  * 值如果表示工作日，则被 +100，那么
  * <ul>
@@ -20,89 +28,95 @@ import org.nutz.lang.Strings;
  */
 public class QzItem_dd extends QzDateItem {
 
-	@Override
-	protected boolean match(Calendar c) {
-		// 忽略 ANY
-		if (ANY == values[0])
-			return true;
+    private final static int MOD_dd = 100;
 
-		// 当月所有工作日都被匹配的话 ...
-		if (values[1] == 100) {
-			int ww = c.get(Calendar.DAY_OF_WEEK);
-			return ww != Calendar.SATURDAY && ww != Calendar.SUNDAY;
-		}
+    public QzItem_dd() {
+        this.supportLast = true;
+    }
 
-		// 根据当前时间重新判断一下 max
-		int maxDayInMonth = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-		int max = maxDayInMonth + 1;
+    @Override
+    protected boolean match(Calendar c) {
+        // 忽略 ANY
+        if (ANY == values[0])
+            return true;
 
-		// 准备返回值
-		int[] re = new int[values.length];
-		re[0] = values[0];
+        // 当月所有工作日都被匹配的话 ...
+        if (values[1] == MOD_dd) {
+            int ww = c.get(Calendar.DAY_OF_WEEK);
+            return ww != Calendar.SATURDAY && ww != Calendar.SUNDAY;
+        }
 
-		// 判断是否需要 L 一下 ...
-		for (int i = 1; i < re.length; i++) {
-			int v = values[i];
-			// 那么一定是 workingDay 了
-			if (v > 40) {
-				v = v - 100; // 恢复原值
+        // 根据当前时间重新判断一下 max
+        int maxDayInMonth = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+        int max = maxDayInMonth + 1;
 
-				// 开始寻找当月的这一天
-				v = v < 0 ? max + v : v;
+        // 准备返回值
+        int[] re = new int[values.length];
+        re[0] = values[0];
 
-				// 取得周几
-				int ww = c.get(Calendar.DAY_OF_WEEK);
-				// 如果是 SUNDAY，那么前进一天
-				if (ww == Calendar.SUNDAY) {
-					// 达到月末，回退到周五
-					if (v >= max) {
-						v -= 2;
-					}
-					// 否则前进一天到周一
-					else {
-						v++;
-					}
-				}
-				// 如果是 SATURDAY，那么回退一天
-				else if (ww == Calendar.SATURDAY) {
-					// 一号是周五，不能回退，那么前进到下周一
-					if (v <= 1) {
-						v += 2;
-					}
-					// 否则回退一天到周五
-					else {
-						v--;
-					}
-				}
-				// 否则就是工作日
-				else {}
-			}
-			// 否则判断一下
-			else if (v < 0) {
-				v = max + v;
-			}
-			// 记录
-			re[i] = v;
-		}
+        // 判断是否需要 L 一下 ...
+        for (int i = 1; i < re.length; i++) {
+            int v = values[i];
+            // 那么一定是 workingDay 了
+            if (v > 40) {
+                v = v - MOD_dd; // 恢复原值
 
-		// 最后判断一下
-		int dd = c.get(Calendar.DAY_OF_MONTH);
-		return super._match_(dd, re);
-	}
+                // 开始寻找当月的这一天
+                v = v < 0 ? max + v : v;
 
-	@Override
-	protected int eval4override(String str) {
-		int workingDay = 0;
+                // 取得周几
+                int ww = c.get(Calendar.DAY_OF_WEEK);
+                // 如果是 SUNDAY，那么前进一天
+                if (ww == Calendar.SUNDAY) {
+                    // 达到月末，回退到周五
+                    if (v >= max) {
+                        v -= 2;
+                    }
+                    // 否则前进一天到周一
+                    else {
+                        v++;
+                    }
+                }
+                // 如果是 SATURDAY，那么回退一天
+                else if (ww == Calendar.SATURDAY) {
+                    // 一号是周五，不能回退，那么前进到下周一
+                    if (v <= 1) {
+                        v += 2;
+                    }
+                    // 否则回退一天到周五
+                    else {
+                        v--;
+                    }
+                }
+                // 否则就是工作日
+                else {}
+            }
+            // 否则判断一下
+            else if (v < 0) {
+                v = max + v;
+            }
+            // 记录
+            re[i] = v;
+        }
 
-		if (str.endsWith("W")) {
-			workingDay = 100;
-			str = str.substring(0, str.length() - 1);
-		}
+        // 最后判断一下
+        int dd = c.get(Calendar.DAY_OF_MONTH);
+        return super._match_(dd, re);
+    }
 
-		if (Strings.isBlank(str))
-			return workingDay;
+    @Override
+    protected int eval4override(String str) {
+        int workingDay = 0;
 
-		return super.eval4override(str) + workingDay;
-	}
+        if (str.endsWith("W")) {
+            workingDay = MOD_dd;
+            str = str.substring(0, str.length() - 1);
+        }
+
+        if (Strings.isBlank(str))
+            return workingDay;
+
+        return super.eval4override(str) + workingDay;
+    }
 
 }

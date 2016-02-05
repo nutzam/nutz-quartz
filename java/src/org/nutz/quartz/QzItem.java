@@ -48,6 +48,11 @@ class QzItem {
      */
     protected int[] values;
 
+    /**
+     * 是否支持 "L" 标记
+     */
+    protected boolean supportLast;
+
     protected void valueOf(String str) {
         // 看看是不是 ANY
         if ("?".equals(str) || "*".equals(str)) {
@@ -196,27 +201,27 @@ class QzItem {
      * @return
      */
     protected int eval(String str, String[] dict, int dictOffset) {
-        int off = 1;
-        int re;
-        try {
-            if (str.endsWith("L")) {
-                off = -1;
-                re = Integer.parseInt(str.substring(0, str.length() - 1));
-            } else {
-                re = Integer.parseInt(str);
-            }
+        int x = 1;
+
+        if (this.supportLast && str.endsWith("L")) {
+            x = -1;
+            str = str.substring(0, str.length() - 1);
         }
-        catch (NumberFormatException e) {
-            if (null != dict) {
-                off = 1;
-                String s = str.toUpperCase();
-                for (int i = dictOffset; i < dict.length; i++)
-                    if (s.equals(dict[i]))
-                        return i * off;
-            }
-            throw e;
+
+        // 直接是数字
+        if (str.matches("^[0-9]+$")) {
+            return Integer.parseInt(str) * x;
         }
-        return re * off;
+
+        // 使用字典
+        if (null != dict) {
+            String s = str.toUpperCase();
+            for (int i = dictOffset; i < dict.length; i++)
+                if (s.equals(dict[i]))
+                    return i;
+        }
+        // 不支持
+        throw Lang.makeThrow("isNaN : " + str);
     }
 
     // 子类重载它，可以支持更丰富的值

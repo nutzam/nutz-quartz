@@ -222,7 +222,7 @@ public class QuartzTest {
     }
 
     @Test
-    public void test_strato() {
+    public void test_simple_parse() {
         Quartz.NEW("0 0 0 7-13 JUL ?");
     }
 
