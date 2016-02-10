@@ -368,7 +368,7 @@ QzItem_ww.prototype.matchDate = function(c){
 };
 //================================================================
 // 主要构造函数
-var Quartz = function(str) {
+var QuartzObj = function(str) {
     this.iss = new QzItem();
     this.imm = new QzItem();
     this.iHH = new QzItem();
@@ -384,7 +384,7 @@ var Quartz = function(str) {
 };
 //................................................................
 // Methods & Properties
-Quartz.prototype = {
+QuartzObj.prototype = {
     //............................................................
     parse : function(s){
         if(!s)
@@ -404,6 +404,23 @@ Quartz.prototype = {
         this.iww.parse(ss[5]);
         // 返回
         return this;
+    },
+    //............................................................
+    // 启动点精确到分,即不是 0分0秒的
+    isTiny : function(){
+        if(this.iss.values[0] != "ONE" || this.iss.values[1] !=0)
+            return true;
+        if(this.imm.values[0] != "ONE" || this.imm.values[1] !=0)
+            return true;
+        return false;
+    },
+    //............................................................
+    isWeekly : function(){
+        return this.iww.values[0] != "ANY";
+    },
+    //............................................................
+    isMonthly : function(){
+        return this.idd.values[0] != "ANY";
     },
     //............................................................
     matchDate : function(c) {
@@ -524,6 +541,13 @@ Quartz.prototype = {
 //............................................................
 // 下面两个是静态方法，可直接 Quartz.xxx 调用
 //............................................................
+var Quartz = function(qz){
+    if(typeof qz == "string")
+        return new QuartzObj(qz);
+    if(qz.iss && qz.imm && qz.iHH && qz.idd && qz.iMM && qz.iww)
+        return qz;
+    throw "Quartz can not wrap : " + qz;
+};
 Quartz.compact = function(array) {
     var list = [];
     for (var i=0; i<array.length; i++){
@@ -549,7 +573,21 @@ Quartz.compactAll = function(array) {
 // 挂载到 window 对象
 // 
 window.Quartz = Quartz;
-// TODO 支持 AMD | CMD
-//...
+// TODO 支持 AMD | CMD 
+//===============================================================
+if (typeof define === "function") {
+    // CMD
+    if(define.cmd) {
+        define(function (require, exports, module) {
+            module.exports = Quartz;
+        });
+    }
+    // AMD
+    else {
+        define("quartz", [], function () {
+            return Quartz;
+        });
+    }
+}
 //================================================================
 })();

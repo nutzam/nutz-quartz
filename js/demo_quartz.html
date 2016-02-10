@@ -80,13 +80,13 @@ function explain(qz){
     var str = "<b>" + qz + "</b>";
     for(var i=qz.length; i<22; i++)
         str += " ";
-    log(str + " : " + new Quartz(qz).toText(i18n));
+    log(str + " : " + Quartz(qz).toText(i18n));
 }
 //-------------------------------------------------------
 var __qz;
 function Qz(str){
     var ms0 = Date.now();
-    __qz = new Quartz(str);
+    __qz = Quartz(str);
     var ms1 = Date.now();
     log("\nPARSE("+(ms1-ms0)+"ms):");
     explain(__qz);
@@ -151,7 +151,7 @@ function FILL() {
     var len    = arguments.length>5 ? arguments[5] : array.length;
     var unit   = arguments.length>6 ? arguments[6] : parseInt(86400 / array.length);
     // 创建 & 解析
-    var qz = new Quartz(qzs);
+    var qz = Quartz(qzs);
 
     if("0 0 8-10 * * ?" == qzs){
         console.log("haha")
@@ -208,7 +208,7 @@ function OVERL() {
 
     var ms0 = Date.now();
     for (var i=0; i< qzs.length; i++) {
-        var qz = new Quartz(qzs[i]);
+        var qz = Quartz(qzs[i]);
         qz.overlap(qos, i + ".E", c);
     }
     var ms1 = Date.now();
