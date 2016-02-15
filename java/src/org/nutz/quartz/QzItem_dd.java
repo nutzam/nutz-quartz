@@ -34,17 +34,32 @@ public class QzItem_dd extends QzDateItem {
         this.supportLast = true;
     }
 
+    public boolean isAllWorkingDay() {
+        if (values.length > 1 && values[1] == MOD_dd)
+            return true;
+        return false;
+    }
+
+    public boolean isReferWorkingDay() {
+        if (values.length > 1 && values[1] > (MOD_dd / 2))
+            return true;
+        return false;
+    }
+
     @Override
     protected boolean match(Calendar c) {
-        // 忽略 ANY
-        if (ANY == values[0])
-            return true;
+        // 取得日期
+        int dd = c.get(Calendar.DAY_OF_MONTH);
 
         // 当月所有工作日都被匹配的话 ...
-        if (values[1] == MOD_dd) {
+        if (this.isAllWorkingDay()) {
             int ww = c.get(Calendar.DAY_OF_WEEK);
             return ww != Calendar.SATURDAY && ww != Calendar.SUNDAY;
         }
+
+        // 忽略 ANY
+        if (ANY == values[0])
+            return true;
 
         // 根据当前时间重新判断一下 max
         int maxDayInMonth = c.getActualMaximum(Calendar.DAY_OF_MONTH);
@@ -100,7 +115,6 @@ public class QzItem_dd extends QzDateItem {
         }
 
         // 最后判断一下
-        int dd = c.get(Calendar.DAY_OF_MONTH);
         return super._match_(dd, re);
     }
 

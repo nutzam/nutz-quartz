@@ -423,6 +423,17 @@ QuartzObj.prototype = {
         return this.idd.values[0] != "ANY";
     },
     //............................................................
+    // day : [1,7] 表 [Sun, Sat]
+    matchDayInWeek : function(day) {
+        return this.iww._match_(day, this.iww.prepare(8));
+    },
+    matchDayInMonth : function(day) {
+        return this.idd._match_(day, this.idd.prepare(32));
+    },
+    matchMonth : function(m) {
+        return this.iMM._match_(m, this.iMM.prepare(13));
+    },
+    //............................................................
     matchDate : function(c) {
         if(!this.idd.matchDate(c))
             return false;
@@ -466,7 +477,7 @@ QuartzObj.prototype = {
         return true;
     },
     // callback : F(array, index)
-    each : function(array, c, callback, off, len, unit) {
+    each : function(array, callback, c, off, len, unit) {
         // 填充数组为空，每必要填充
         if (!array || array.length == 0)
             return;
@@ -495,13 +506,13 @@ QuartzObj.prototype = {
         }
     },
     fill : function(array, obj, c, off, len, unit) {
-        this.each(array, c, function(array, index) {
+        this.each(array, function(array, index) {
             array[index] = obj;
-        }, off, len, unit);
+        }, c, off, len, unit);
         return array;
     },
     overlap : function(array, obj, c, off, len, unit) {
-        this.each(array, c, function(array, index) {
+        this.each(array, function(array, index) {
             var ov = array[index];
             // 增加一个叠加器
             if (!ov){
@@ -511,7 +522,7 @@ QuartzObj.prototype = {
             else{
                 ov.push(obj);
             }
-        }, off, len, unit);
+        }, c, off, len, unit);
         return array;
     },
     //............................................................
@@ -552,7 +563,7 @@ Quartz.compact = function(array) {
     var list = [];
     for (var i=0; i<array.length; i++){
         var ele = array[i];
-        if (null != ele)
+        if (null != ele && typeof ele != 'undefined')
             list.push(ele);
     }
     return list;
@@ -561,7 +572,7 @@ Quartz.compactAll = function(array) {
     var list = [];
     for (var i = 0; i < array.length; i++){
         var ele = array[i];
-        if (null != ele)
+        if (null != ele && typeof ele != 'undefined')
             list.push({
                 obj   : ele,
                 index : i

@@ -198,6 +198,39 @@ public class Quartz {
     }
 
     /**
+     * 看看能不能匹配上一周中的天数
+     * 
+     * @param day
+     *            一周内的天数，1 表示周日, 2 表示周一 ... 7 表示周六
+     * @return 是否匹配
+     */
+    public boolean matchDayInWeek(int day) {
+        return this.iww._match_(day, this.iww.prepare(8));
+    }
+
+    /**
+     * 看看能不能匹配上一个月的天数
+     * 
+     * @param day
+     *            月中的天数，1 - 31
+     * @return 是否匹配
+     */
+    public boolean matchDayInMonth(int day) {
+        return this.idd._match_(day, this.idd.prepare(32));
+    }
+
+    /**
+     * 匹配月
+     * 
+     * @param m
+     *            月份，1-12
+     * @return 是否匹配
+     */
+    public boolean matchMonth(int m) {
+        return this.iMM._match_(m, this.iMM.prepare(13));
+    }
+
+    /**
      * 根据给定的秒数，判断是否匹配本表达式
      * 
      * @param sec
@@ -246,25 +279,25 @@ public class Quartz {
     }
 
     /**
-     * @see #each(Object[], Calendar, QzEach)
+     * @see #each(Object[], QzEach, Calendar)
      */
-    public <T> void each(T[] array, String ds, QzEach<T> callback) {
-        this.each(array, Times.C(ds), callback);
+    public <T> void each(T[] array, QzEach<T> callback, String ds) {
+        this.each(array, callback, Times.C(ds));
     }
 
     /**
-     * @see #each(Object[], Calendar, QzEach)
+     * @see #each(Object[], QzEach, Calendar)
      */
-    public <T> void each(T[] array, Date d, QzEach<T> callback) {
-        this.each(array, Times.C(d), callback);
+    public <T> void each(T[] array, QzEach<T> callback, Date d) {
+        this.each(array, callback, Times.C(d));
     }
 
     /**
      * @see #each(Object[], int, int, int, Calendar, QzEach)
      */
-    public <T> void each(T[] array, Calendar c, QzEach<T> callback) {
+    public <T> void each(T[] array, QzEach<T> callback, Calendar c) {
         if (null != array && array.length > 0)
-            each(array, c, callback, 0, array.length, 86400 / array.length);
+            each(array, callback, c, 0, array.length, 86400 / array.length);
     }
 
     /**
@@ -294,16 +327,18 @@ public class Quartz {
      * @param <T>
      * @param array
      *            要被访问数组
-     * @param c
-     *            日期对象。空的话，一定会执行迭代
+     * 
      * @param callback
      *            如果数组下标被匹配，则要执行的回调 * @param off 从数组的哪个下标开始访问
+     * 
+     * @param c
+     *            日期对象。空的话，一定会执行迭代
      * @param len
      *            访问多少个元素
      * @param unit
      *            一个数组元素表示多少秒
      */
-    public <T> void each(T[] array, Calendar c, QzEach<T> callback, int off, int len, int unit) {
+    public <T> void each(T[] array, QzEach<T> callback, Calendar c, int off, int len, int unit) {
         // 填充数组为空，每必要填充
         if (null == array || array.length == 0)
             return;
@@ -355,7 +390,7 @@ public class Quartz {
      *            一个数组元素表示多少秒
      * 
      * @return 数组本身以便链式赋值
-     * @see #each(Object[], Calendar, QzEach)
+     * @see #each(Object[], QzEach, Calendar)
      */
     @SuppressWarnings("unchecked")
     public <T extends QzOverlapor> T[] overlap(T[] array,
@@ -368,7 +403,7 @@ public class Quartz {
             Mirror<?> mi = Mirror.me(array.getClass().getComponentType());
             final Borning<T> borning = (Borning<T>) mi.getBorning();
             final Object[] args = new Object[0];
-            this.each(array, c, new QzEach<T>() {
+            this.each(array, new QzEach<T>() {
                 public void invoke(T[] array, int i) {
                     // 增加一个叠加器
                     if (null == array[i])
@@ -376,7 +411,7 @@ public class Quartz {
                     // 加入叠加对象
                     array[i].add(obj);
                 }
-            }, off, len, unit);
+            }, c, off, len, unit);
         }
         return array;
     }
@@ -510,14 +545,14 @@ public class Quartz {
      *            一个数组元素表示多少秒
      * 
      * @return 数组本身以便链式赋值
-     * @see #each(Object[], Calendar, QzEach)
+     * @see #each(Object[], QzEach, Calendar)
      */
     public <T> T[] fill(T[] array, final T obj, Calendar c, int off, int len, int unit) {
-        this.each(array, c, new QzEach<T>() {
+        this.each(array, new QzEach<T>() {
             public void invoke(T[] array, int i) {
                 array[i] = obj;
             }
-        }, off, len, unit);
+        }, c, off, len, unit);
         return array;
     }
 
