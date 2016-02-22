@@ -226,6 +226,7 @@ QzItem_dd.prototype.eval4override = function(str){
 
     if (/W$/.test(str)) {
         workingDay = MOD_dd;
+        this.workingDay = true;
         str = str.substring(0, str.length - 1);
     }
 
@@ -265,7 +266,8 @@ QzItem_dd.prototype.matchDate = function(c){
             v = v < 0 ? max + v : v;
 
             // 取得周几
-            var ww = c.getDay();   // 0 为 SUN.
+            var CV = new Date(c.getFullYear(), c.getMonth(), v);
+            var ww = CV.getDay();   // 0 为 SUN.
             // 如果是 SUNDAY，那么前进一天
             if (ww == 0) {
                 // 达到月末，回退到周五
@@ -422,12 +424,17 @@ QuartzObj.prototype = {
     isMonthly : function(){
         return this.idd.values[0] != "ANY";
     },
+    isWorkingDay : function(){
+        return this.idd.workingDay;
+    },
     //............................................................
     // day : [1,7] 表 [Sun, Sat]
     matchDayInWeek : function(day) {
         return this.iww._match_(day, this.iww.prepare(8));
     },
     matchDayInMonth : function(day) {
+        if(this.idd.workingDay)
+            day += MOD_dd;
         return this.idd._match_(day, this.idd.prepare(32));
     },
     matchMonth : function(m) {
@@ -543,6 +550,13 @@ QuartzObj.prototype = {
         else{
             this.idd.joinText(ary, i18n, "day");
         }
+        this.iHH.joinText(ary, i18n, "hour");
+        this.imm.joinText(ary, i18n, "minute");
+        this.iss.joinText(ary, i18n, "second");
+        return ary.join("");
+    },
+    toTimeText : function(i18n){
+        var ary = [];
         this.iHH.joinText(ary, i18n, "hour");
         this.imm.joinText(ary, i18n, "minute");
         this.iss.joinText(ary, i18n, "second");
