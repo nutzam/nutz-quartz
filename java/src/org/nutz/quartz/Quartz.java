@@ -284,6 +284,11 @@ public class Quartz {
     public <T> void each(T[] array, QzEach<T> callback, String ds) {
         this.each(array, callback, Times.C(ds));
     }
+    
+    // 兼容老的写法啊
+    public <T> void each(T[] array, String ds, QzEach<T> callback) {
+        this.each(array, callback, Times.C(ds));
+    }
 
     /**
      * @see #each(Object[], QzEach, Calendar)
