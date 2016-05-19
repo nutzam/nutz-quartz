@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.nutz</groupId>
   <artifactId>nutz-quartz</artifactId>
-  <version>1.r.56-SNAPSHOT</version>
+  <version>1.r.57-SNAPSHOT</version>
   <build>
   	<sourceDirectory>java/src</sourceDirectory>
   </build>
@@ -10,7 +10,7 @@
   	<dependency>
   		<groupId>org.nutz</groupId>
   		<artifactId>nutz</artifactId>
-  		<version>1.r.56-SNAPSHOT</version>
+  		<version>1.r.57-SNAPSHOT</version>
   	</dependency>
   </dependencies>
 </project>
