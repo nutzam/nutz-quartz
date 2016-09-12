@@ -19,8 +19,8 @@
 		</license>
 	</licenses>
 
-	<name>ssdb4j</name>
-	<url>http://github.com/nutzam/nutzwx</url>
+	<name>nutz-quartz</name>
+	<url>http://github.com/nutzam/nutz-quartz</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
