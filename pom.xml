@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nutz</groupId>
 	<artifactId>nutz-quartz</artifactId>
-	<version>1.r.58-SNAPSHOT</version>
+	<version>1.r.59-SNAPSHOT</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.nutz</groupId>
 			<artifactId>nutz</artifactId>
-			<version>1.r.58-SNAPSHOT</version>
+			<version>1.r.59-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
