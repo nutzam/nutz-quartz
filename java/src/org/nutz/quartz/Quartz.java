@@ -627,8 +627,4 @@ public class Quartz {
     public String toText(NutMap i18n) {
         throw Lang.noImplement();
     }
-
-    public static void main(String[] args) {
-        System.out.println("1.b.52");
-    }
 }
